@@ -32,7 +32,7 @@ public:
             cout << "listen error" << endl;
     }
     //response the request
-    void response(int status) {
+    void response(int status, int cli_fd) {
         socklen_t len;
         len = sizeof(sockaddr);
         char buf[4096];
@@ -51,14 +51,8 @@ public:
                 "<p>Welcome to my Httpd.</p>"
                 "</body>"
                 "</html>";
-        if ((sock_fd = accept(sock_fd, (sockaddr *) &s_addr, &len)) > 0) {
             if(status == 1)
-                send(sock_fd, GET_STR.c_str(), GET_STR.size(), 0);
-            close(sock_fd);
-        }
-        else {
-            cout << "accept failed" << endl;
-        }
+                send(cli_fd, GET_STR.c_str(), GET_STR.size(), 0);
     }
     //parse the request message
     int messageParse(string request_messge) {
@@ -78,8 +72,13 @@ public:
         while(1) {
             if((cli_fd = accept(sock_fd, (sockaddr*)&s_addr, &len)) > 0) {
                 recv(cli_fd, buf, sizeof(buf), 0);
+                cout << buf << endl;
                 int status = messageParse(buf);
-                response(status);
+                response(status, cli_fd);
+                close(cli_fd);
+            }
+            else {
+                cout << "accept error" << endl;
             }
         }
     }
